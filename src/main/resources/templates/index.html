@@ -1,137 +1,422 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/styles.css" rel="stylesheet">
 
+    <title>AI Chat</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="/styles.css" rel="stylesheet">
 </head>
+
 <body>
+
 <div class="container py-4">
+
     <div class="row justify-content-center">
+
         <div class="col-md-8">
+
             <div class="chat-container position-relative">
+
                 <!-- Chat Header -->
-                <div class="chat-header d-flex align-items-center">
-                    <div class="avatar">
-                        <img src="/robot.svg" alt="Robot Avatar">
+                <div class="chat-header d-flex align-items-center justify-content-between">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="avatar">
+                            <img src="/robot.svg" alt="Robot Avatar">
+                        </div>
+
+                        <div>
+                            <h5 class="mb-0">ChatBot</h5>
+                            <p class="mb-0">
+                                <span class="online-indicator"></span>
+                                Online
+                            </p>
+                        </div>
+
                     </div>
-                    <div>
-                        <h5 class="mb-0">ChatBot</h5>
-                        <p class="mb-0"><span class="online-indicator"></span>Online</p>
-                    </div>
+
+                    <button class="btn btn-outline-light btn-sm"
+                            type="button"
+                            id="newChatButton">
+                        + New Chat
+                    </button>
+
                 </div>
 
                 <!-- Chat Messages -->
                 <div class="chat-messages" id="chatMessages">
-                    <!-- Incoming Message -->
+
                     <div class="message d-flex incoming">
+
                         <div class="avatar">
                             <img src="/robot.svg" alt="Robot Avatar">
                         </div>
+
                         <div>
                             <div class="message-content">
                                 Hi there! How can I help you today?
                             </div>
-                            <div class="message-time">10:03 AM</div>
+
+                            <div class="message-time">Just now</div>
                         </div>
+
                     </div>
 
                 </div>
 
                 <!-- Chat Input -->
                 <div class="chat-input">
+
                     <div class="input-group">
-                        <textarea class="form-control message-textarea" placeholder="Type your message..." aria-label="Type your message"></textarea>
-                        <button class="btn btn-primary" type="button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+
+                        <textarea
+                                class="form-control message-textarea"
+                                placeholder="Type your message..."
+                                aria-label="Type your message"
+                                rows="1"></textarea>
+
+                        <button class="btn btn-primary"
+                                type="button"
+                                id="sendButton">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 width="16"
+                                 height="16"
+                                 fill="currentColor"
+                                 viewBox="0 0 16 16">
+
                                 <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+
                             </svg>
+
                         </button>
+
                     </div>
+
+                    <small class="text-muted">
+                        Press Enter to send. Shift + Enter for a new line.
+                    </small>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
 <script>
 
-    const robotSvg = `<img src="/robot.svg" alt="Robot Avatar">`;
+    // =====================================
+    // CONVERSATION MANAGEMENT
+    // =====================================
 
-    // Simple function to add a new message
+    let conversationId = crypto.randomUUID();
+
+    let isSending = false;
+
+    const chatMessages = document.getElementById("chatMessages");
+
+    const textarea = document.querySelector(".message-textarea");
+
+    const sendButton = document.getElementById("sendButton");
+
+    const newChatButton = document.getElementById("newChatButton");
+
+
+    // =====================================
+    // ADD MESSAGE TO CHAT
+    // =====================================
+
     function addMessage(content, isOutgoing = false) {
-        const messagesContainer = document.getElementById('chatMessages');
+
         const now = new Date();
-        const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message d-flex ${isOutgoing ? 'outgoing flex-row-reverse' : 'incoming'}`;
+        const timeString = now.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
 
-        const avatarContent = isOutgoing ? 'Me' : robotSvg;
+        const messageDiv = document.createElement("div");
 
-        messageDiv.innerHTML = `
-                <div class="avatar">${avatarContent}</div>
-                <div class="${isOutgoing ? 'text-end' : ''}">
-                    <div class="message-content">
-                        ${content}
-                    </div>
-                    <div class="message-time">${timeString}</div>
-                </div>
-            `;
+        messageDiv.className = `message d-flex ${
+            isOutgoing
+                ? "outgoing flex-row-reverse"
+                : "incoming"
+        }`;
 
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        const avatar = document.createElement("div");
+
+        avatar.className = "avatar";
+
+        if (isOutgoing) {
+
+            avatar.textContent = "Me";
+
+        } else {
+
+            const img = document.createElement("img");
+
+            img.src = "/robot.svg";
+            img.alt = "Robot Avatar";
+
+            avatar.appendChild(img);
+
+        }
+
+        const messageWrapper = document.createElement("div");
+
+        if (isOutgoing) {
+            messageWrapper.classList.add("text-end");
+        }
+
+        const messageContent = document.createElement("div");
+
+        messageContent.className = "message-content";
+
+        // Safely render text
+        messageContent.textContent = content;
+
+        const messageTime = document.createElement("div");
+
+        messageTime.className = "message-time";
+
+        messageTime.textContent = timeString;
+
+        messageWrapper.appendChild(messageContent);
+        messageWrapper.appendChild(messageTime);
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageWrapper);
+
+        chatMessages.appendChild(messageDiv);
+
+        scrollToBottom();
+
     }
 
-    // Handle auto-resize of textarea
-    const textarea = document.querySelector('.message-textarea');
-    textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-        // Set max height
-        if (this.scrollHeight > 100) {
-            this.style.height = '100px';
-        }
-    });
 
-    // Add event listener to send button
-    document.querySelector('.btn-primary').addEventListener('click', function() {
-        const textarea = document.querySelector('.message-textarea');
+    // =====================================
+    // SCROLL TO BOTTOM
+    // =====================================
+
+    function scrollToBottom() {
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    }
+
+
+    // =====================================
+    // SHOW TYPING INDICATOR
+    // =====================================
+
+    function showTypingIndicator() {
+
+        const typingDiv = document.createElement("div");
+
+        typingDiv.id = "typingIndicator";
+
+        typingDiv.className = "message d-flex incoming";
+
+        typingDiv.innerHTML = `
+            <div class="avatar">
+                <img src="/robot.svg" alt="Robot Avatar">
+            </div>
+
+            <div>
+                <div class="message-content">
+                    Typing...
+                </div>
+            </div>
+        `;
+
+        chatMessages.appendChild(typingDiv);
+
+        scrollToBottom();
+
+    }
+
+
+    // =====================================
+    // REMOVE TYPING INDICATOR
+    // =====================================
+
+    function removeTypingIndicator() {
+
+        const indicator = document.getElementById("typingIndicator");
+
+        if (indicator) {
+            indicator.remove();
+        }
+
+    }
+
+
+    // =====================================
+    // SEND MESSAGE TO SPRING BOOT
+    // =====================================
+
+    function sendMessage() {
+
         const message = textarea.value.trim();
 
-        if (message) {
-            addMessage(message, true);
-            textarea.value = '';
-            textarea.style.height = '50px'; // Reset height
+        if (!message || isSending) {
+            return;
+        }
 
-            $.ajax('/api/chat', {
-                type: 'POST',
-                data: JSON.stringify({ prompt: message}),
-                contentType: 'application/json'
-            }).done(function(response) {
-                console.log("Success:", response);
-                addMessage(response.content);
+        // Display user message
+        addMessage(message, true);
+
+        // Clear textarea
+        textarea.value = "";
+
+        textarea.style.height = "50px";
+
+        // Show loading
+        isSending = true;
+
+        sendButton.disabled = true;
+
+        showTypingIndicator();
+
+        // AJAX request
+        $.ajax("/api/chat", {
+
+            type: "POST",
+
+            contentType: "application/json",
+
+            data: JSON.stringify({
+
+                prompt: message,
+
+                conversationId: conversationId
+
             })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                        console.error("Error:", textStatus, errorThrown);
-                        alert("Error fetching data.");
-                    }
-                );
+
+        })
+
+            .done(function(response) {
+
+                removeTypingIndicator();
+
+                addMessage(response.content);
+
+            })
+
+            .fail(function(jqXHR, textStatus, errorThrown) {
+
+                removeTypingIndicator();
+
+                console.error("Chat Error:", errorThrown);
+
+                addMessage("Sorry, something went wrong. Please try again.");
+
+            })
+
+            .always(function() {
+
+                isSending = false;
+
+                sendButton.disabled = false;
+
+                textarea.focus();
+
+            });
+
+    }
+
+
+    // =====================================
+    // NEW CONVERSATION
+    // =====================================
+
+    function newChat() {
+
+        if (isSending) {
+            return;
         }
+
+        // Generate a new conversation ID
+        conversationId = crypto.randomUUID();
+
+        // Clear previous messages
+        chatMessages.innerHTML = "";
+
+        // Show welcome message
+        addMessage("Hi there! How can I help you today?");
+
+        textarea.value = "";
+
+        textarea.style.height = "50px";
+
+        textarea.focus();
+
+        console.log("New conversation started:", conversationId);
+
+    }
+
+
+    // =====================================
+    // AUTO RESIZE TEXTAREA
+    // =====================================
+
+    textarea.addEventListener("input", function() {
+
+        this.style.height = "auto";
+
+        this.style.height = Math.min(this.scrollHeight, 100) + "px";
+
     });
 
-    // Add event listener for pressing Enter key (without shift for newline)
-    document.querySelector('.message-textarea').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent default newline
-            document.querySelector('.btn-primary').click();
+
+    // =====================================
+    // SEND BUTTON CLICK
+    // =====================================
+
+    sendButton.addEventListener("click", sendMessage);
+
+
+    // =====================================
+    // ENTER KEY TO SEND
+    // =====================================
+
+    textarea.addEventListener("keydown", function(e) {
+
+        if (e.key === "Enter" && !e.shiftKey) {
+
+            e.preventDefault();
+
+            sendMessage();
+
         }
+
     });
+
+
+    // =====================================
+    // NEW CHAT BUTTON
+    // =====================================
+
+    newChatButton.addEventListener("click", newChat);
+
+
 </script>
+
 </body>
 </html>

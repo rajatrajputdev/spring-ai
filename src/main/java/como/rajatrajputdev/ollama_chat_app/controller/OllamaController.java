@@ -2,6 +2,9 @@ package como.rajatrajputdev.ollama_chat_app.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +17,15 @@ public class OllamaController {
 
     private final ChatClient chatClient;
 
-    public OllamaController(ChatClient.Builder builder) {
+    public OllamaController(
+            ChatClient.Builder builder,
+            ChatMemory chatMemory) {
+
         this.chatClient = builder
-                .defaultAdvisors(new SimpleLoggerAdvisor())
+                .defaultAdvisors(
+                        new SimpleLoggerAdvisor(),
+                        MessageChatMemoryAdvisor.builder(chatMemory).build()
+                )
                 .build();
     }
 
@@ -25,14 +34,24 @@ public class OllamaController {
             @RequestBody Map<String, String> request) {
 
         String message = request.get("prompt");
+        String conversationId = request.get("conversationId");
 
         if (message == null || message.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Prompt cannot be empty"));
         }
 
+        if (conversationId == null || conversationId.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Conversation ID cannot be empty"));
+        }
+
         String response = chatClient.prompt()
                 .user(message)
+                .advisors(a -> a.param(
+                        ChatMemory.CONVERSATION_ID,
+                        conversationId
+                ))
                 .call()
                 .content();
 
