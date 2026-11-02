@@ -1,11 +1,7 @@
-
 package como.rajatrajputdev.ollama_chat_app.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +14,10 @@ public class OllamaController {
 
     private final ChatClient chatClient;
 
-    public OllamaController(ChatClient.Builder builder, ChatMemory chatMemory) {
-        this.chatClient = builder.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build(),
-                new SimpleLoggerAdvisor()).build();
+    public OllamaController(ChatClient.Builder builder) {
+        this.chatClient = builder
+                .defaultAdvisors(new SimpleLoggerAdvisor())
+                .build();
     }
 
     @PostMapping("/chat")
@@ -34,7 +31,8 @@ public class OllamaController {
                     .body(Map.of("error", "Prompt cannot be empty"));
         }
 
-        String response = chatClient.prompt(message)
+        String response = chatClient.prompt()
+                .user(message)
                 .call()
                 .content();
 
