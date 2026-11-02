@@ -1,5 +1,7 @@
 package como.rajatrajputdev.ollama_chat_app.controller;
 
+import como.rajatrajputdev.ollama_chat_app.tools.CalculatorTool;
+import como.rajatrajputdev.ollama_chat_app.tools.DateTimeCurrent;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -14,12 +16,14 @@ import java.util.Map;
 @RequestMapping("/api")
 @CrossOrigin("*")
 public class OllamaController {
-
+    private final CalculatorTool calculatorTool;
     private final ChatClient chatClient;
-
+    private final DateTimeCurrent dateTimeCurrent;
     public OllamaController(
-            ChatClient.Builder builder,
-            ChatMemory chatMemory) {
+            CalculatorTool calculatorTool, ChatClient.Builder builder,
+            ChatMemory chatMemory, DateTimeCurrent dateTimeCurrent) {
+        this.calculatorTool = calculatorTool;
+        this.dateTimeCurrent = dateTimeCurrent;
 
         this.chatClient = builder
                 .defaultAdvisors(
@@ -52,6 +56,7 @@ public class OllamaController {
                         ChatMemory.CONVERSATION_ID,
                         conversationId
                 ))
+                .tools(calculatorTool, dateTimeCurrent)
                 .call()
                 .content();
 
@@ -59,4 +64,5 @@ public class OllamaController {
                 Map.of("content", response)
         );
     }
+
 }
